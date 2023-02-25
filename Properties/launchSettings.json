@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DexFixer": {
+      "commandName": "Project",
+      "commandLineArgs": "\"E:\\Downloads\\10203196_28949.dex\" \"E:\\Downloads\\10203196_28949_com.PEP.biaori.activity.AboutActivity.bin\""
+    }
+  }
+}

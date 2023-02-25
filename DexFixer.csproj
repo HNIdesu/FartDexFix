@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="BinaryReader">
+      <HintPath>..\..\BinaryReader\bin\Debug\netstandard2.0\BinaryReader.dll</HintPath>
+    </Reference>
+    <Reference Include="MUTF8Encoding">
+      <HintPath>..\..\MUTF8Encoding\bin\Debug\net6.0\MUTF8Encoding.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
