@@ -35,11 +35,15 @@
                 foreach (var codeItem in codeItems)
                 {
                     long address;
-                    {
+                    try{
                         string cm = codeItem.ClassName;
                         cm = $"L{cm.Replace(".", "/")};";
                         var methods = ( from cid in file.ClassIdList where cid.Class.Name.Value == cm select cid.ClassData.VirtualMethods ).First().Union(( from cid in file.ClassIdList where cid.Class.Name.Value == cm select cid.ClassData.DirectMethods ).First());
                         address = ( from m in methods where ReferenceEquals(m.MethodId, file.MethodIdList[codeItem.MethodId]) select m.CodeItem.InsAdd ).First();
+                    }catch (Exception ex)
+                    {
+                        Console.WriteLine($"找不到class:{codeItem.ClassName}的方法:{file.MethodIdList[codeItem.MethodId].Name.Value}。");
+                        continue;
                     }
                     fs.Seek(address, SeekOrigin.Begin);
                     fs.Write(codeItem.Data);

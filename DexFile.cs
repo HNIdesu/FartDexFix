@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.InteropServices;
-using System.Text;
-using BinaryOperator;
+﻿using System.Runtime.InteropServices;
 
 namespace HNIdesu.Dex
 {
@@ -133,7 +127,11 @@ namespace HNIdesu.Dex
                                     y.MethodId = methodIdList[baseAddr];
                                 }
                                 else
-                                    y.MethodId = methodIdList[reader.ReadUleb128() + baseAddr];
+                                {
+                                    baseAddr += reader.ReadUleb128();
+                                    y.MethodId = methodIdList[baseAddr];
+                                }
+                                    
                                     
                                 y.AccessFlag=(AccessFlags)br.ReadUleb128();
                                 int codeOff=br.ReadUleb128();
@@ -168,7 +166,11 @@ namespace HNIdesu.Dex
                                     y.MethodId = methodIdList[baseAddr];
                                 }
                                 else
-                                    y.MethodId = methodIdList[reader.ReadUleb128() + baseAddr];
+                                {
+                                    baseAddr += reader.ReadUleb128();
+                                    y.MethodId = methodIdList[baseAddr];
+                                }
+                                    
 
                                 y.AccessFlag = (AccessFlags)br.ReadUleb128();
                                 int codeOff = br.ReadUleb128();

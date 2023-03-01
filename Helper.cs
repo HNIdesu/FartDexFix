@@ -12,7 +12,7 @@ namespace HNIdesu.Dex
             while (true)
             {
                 int b = stream.ReadByte();
-                length |= (b & 0x7F) << 7 * flag++;
+                length |= (b & 0x7F) << (7 * flag++);
                 if (b < 0x80)
                     break;
             }
@@ -26,7 +26,7 @@ namespace HNIdesu.Dex
             while (true)
             {
                 int b = stream.ReadByte();
-                length |= (b & 0x7F) << 7 * flag++;
+                length |= (b & 0x7F) <<( 7 * flag++);
                 if (b < 0x80)
                     break;
             }
