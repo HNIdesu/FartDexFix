@@ -3,9 +3,9 @@
 namespace HNIdesu.Dex
 {
     
-    internal class Uleb128StringReader : BinaryOperator.StringReader
+    internal class Uleb128StringReader : HNIdesu.IO.StringReader
     {      
-        public override string ReadString(Stream stream, Encoding encoding)
+        public override string ReadString(Stream stream)
         {
             stream.ReadUleb128();
             List<byte> buffer=new List<byte>();

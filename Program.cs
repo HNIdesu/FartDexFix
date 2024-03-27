@@ -6,7 +6,7 @@
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("Usage:   input.dex ins1.bin ins2.bin ins3.bin...");
+                Console.WriteLine("Usage: input.dex ins1.bin ins2.bin ins3.bin...");
                 return;
             }
             string inputFileName = args[0];

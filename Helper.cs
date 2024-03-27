@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace HNIdesu.Dex
+﻿namespace HNIdesu.Dex
 {
     internal static class Helper
     {
@@ -19,7 +16,7 @@ namespace HNIdesu.Dex
             return length;
         }
 
-        public static int ReadUleb128(this BinaryOperator.BinaryReader stream)
+        public static int ReadUleb128(this HNIdesu.IO.BinaryReader stream)
         {
             int length = 0;
             int flag = 0;

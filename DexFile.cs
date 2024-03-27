@@ -25,7 +25,7 @@ namespace HNIdesu.Dex
             file.ClassIdList = classIdList;
             using (var fs = System.IO.File.OpenRead(path))
             {
-                BinaryOperator.BinaryReader reader = new BinaryOperator.BinaryReader(fs);
+                var reader = new HNIdesu.IO.BinaryReader(fs);
                 DexHeaderStruct dexHeader = reader.ReadMarshal<DexHeaderStruct>(Marshal.SizeOf(typeof(DexHeaderStruct)));
 
                 //获取string ids
