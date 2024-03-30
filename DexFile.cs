@@ -23,9 +23,9 @@ namespace HNIdesu.Dex
             file.ProtoIdList = protoIdList;
             file.MethodIdList = methodIdList;
             file.ClassIdList = classIdList;
-            using (var fs = System.IO.File.OpenRead(path))
+            using (var fs = File.OpenRead(path))
             {
-                var reader = new HNIdesu.IO.BinaryReader(fs);
+                var reader = new IO.BinaryReader(fs);
                 DexHeaderStruct dexHeader = reader.ReadMarshal<DexHeaderStruct>(Marshal.SizeOf(typeof(DexHeaderStruct)));
 
                 //获取string ids
@@ -76,8 +76,6 @@ namespace HNIdesu.Dex
                 {
                     ClassId cid = new ClassId();
                     int class_idx= reader.ReadInt32();
-                    if (class_idx == 3660)
-                        Console.WriteLine();
                     int access_flags=reader.ReadInt32();
                     int superclass_ids=reader.ReadInt32();
                     int interfaces_off=reader.ReadInt32();

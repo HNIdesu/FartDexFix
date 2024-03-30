@@ -1,42 +1,83 @@
 ﻿using System.Text;
 using System.Buffers.Text;
-using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Text.Json.Nodes;
+using System.Security.Cryptography;
 
 namespace HNIdesu.Dex
 {
-    internal class CodeItemParser
+    public sealed class CodeItemParser
     {
         /*
          原版Fart生成的CodeItem文件不好分析， 
          此函数解析的是自定义的CodeItem。需要根据实际CodeItem格式手动修改。
          */
-        public static List<CodeItem> Parse(string fileName)
+        public static IEnumerable<CodeItem> Parse(string fileName)
         {
-            List<CodeItem> list = new List<CodeItem>();
-            foreach(Match objMatch in Regex.Matches(File.ReadAllText(fileName), "{[^}]+}"))
+            foreach (string item in File.ReadAllLines(fileName))
             {
-                JsonElement ele = JsonDocument.Parse(objMatch.Value).RootElement;
-                CodeItem codeItem = new CodeItem();
-                byte[] buffer = new byte[ele.GetProperty("code_item_len").GetInt32()];
-                Base64.DecodeFromUtf8(Encoding.UTF8.GetBytes(ele.GetProperty("data").GetString()), buffer, out int a, out int b);
-                codeItem.Data = buffer;
-                codeItem.ClassName = ele.GetProperty("classname").GetString();
-                codeItem.MethodId = ele.GetProperty("method_idx").GetInt32();
-                list.Add(codeItem);
-                
+                var element = JsonNode.Parse(item) as JsonObject;
+                if (element == null ||
+                    !element.ContainsKey("code_item_len") ||
+                    !element.ContainsKey("classname") ||
+                    !element.ContainsKey("method_idx") ||
+                    !element.ContainsKey("data"))
+                {
+                    Console.WriteLine($"error parsing line {item} in codeitem file:{fileName}");
+                    continue;
+                }
+                var dataLength = element["code_item_len"]!.GetValue<int>();
+                var className = element["classname"]!.GetValue<string>();
+                var methodId = element["method_idx"]!.GetValue<int>();
+                var b64Data = element["data"]!.GetValue<string>();
+                byte[] data = new byte[dataLength];
+                Base64.DecodeFromUtf8(Encoding.UTF8.GetBytes(b64Data), data, out _, out _);
+                CodeItem codeItem = new CodeItem(className,methodId,data);
+                yield return codeItem;
             }
-
-            return list;
-
         }
     }
-    internal class CodeItem
+    public sealed class CodeItem
     {
-        public byte[] Data;
-        public int MethodId;
-        public string ClassName;
+        public byte[] Data { get;private set; }
+        public int MethodId { get;private set; }
+        public string ClassName { get; private set; }
+        private int mHash;
+        public CodeItem(string className,int methodId, byte[] data)
+        {
+            Data = data;
+            MethodId = methodId;
+            ClassName = className;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(BitConverter.GetBytes(MethodId));
+                ms.Write(Encoding.UTF8.GetBytes(ClassName));
+                mHash = BitConverter.ToInt32(new ReadOnlySpan<byte>(MD5.HashData(ms.ToArray()), 0, 4));
+            }
+        }
+        public override string ToString()
+        {
+            return $"MethodId:{MethodId},ClassName:{ClassName}";
+        }
+        public override bool Equals(object? obj)
+        {
+            var other = obj as CodeItem;
+            if (other is null) return false;
+            return other.ClassName == ClassName &&
+                other.MethodId == MethodId;
+        }
+        public static bool operator ==(CodeItem? thisObj, CodeItem? other)
+        {
+            if (thisObj == null) return false;
+            return thisObj.Equals(other);
+        }
+        public static bool operator !=(CodeItem thisObj, CodeItem other)
+        {
+            return !(thisObj == other);
+        }
+
+        public override int GetHashCode() => mHash;
     }
+
 
 
 }

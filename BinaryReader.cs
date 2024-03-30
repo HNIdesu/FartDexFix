@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace HNIdesu.IO
@@ -176,50 +175,6 @@ namespace HNIdesu.IO
             T temp=Marshal.PtrToStructure<T>(ptr);
             Marshal.FreeHGlobal(ptr);
             return temp;
-        }
-
-        /// <summary>
-        /// 更自由的读取类的方式
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="item"></param>
-        /// <exception cref="NotSupportedException"></exception>
-        public void ReadClass<T>(T item) where T : class
-        {
-            SortedList<int, FieldInfo> sortedList = new();
-            foreach(var fieldInfo in item.GetType().GetFields())
-            {
-                object[] array;
-                if ((array=fieldInfo.GetCustomAttributes(typeof(RequiredAttribute), true)).Length != 0)
-                {
-                    RequiredAttribute attr = (RequiredAttribute)array[0];
-                    sortedList.Add(attr.Index,fieldInfo);
-                }
-            }
-            foreach(var fieldInfo in sortedList)
-            {
-                Type t = fieldInfo.Value.FieldType;
-                if (t == typeof(int))
-                    fieldInfo.Value.SetValue(item, ReadInt32());
-                else if (t == typeof(uint))
-                    fieldInfo.Value.SetValue(item, ReadUInt32());
-                else if (t == typeof(long))
-                    fieldInfo.Value.SetValue(item, ReadInt64());
-                else if (t == typeof(ulong))
-                    fieldInfo.Value.SetValue(item, ReadUInt64());
-                else if (t == typeof(byte))
-                    fieldInfo.Value.SetValue(item, ReadByte());
-                else if (t == typeof(short))
-                    fieldInfo.Value.SetValue(item, ReadInt16());
-                else if (t == typeof(ushort))
-                    fieldInfo.Value.SetValue(item, ReadUInt16());
-                else if (t == typeof(string))
-                    fieldInfo.Value.SetValue(item, ReadString());
-                else
-                    throw new NotSupportedException("不支持的类型");
-
-            }
-            return;
         }
 
         public void Dispose()

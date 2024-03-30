@@ -62,7 +62,6 @@ namespace HNIdesu.Dex
 
         }
 
-
         public class MethodId
         {
             public TypeId Class;

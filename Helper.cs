@@ -1,6 +1,6 @@
 ﻿namespace HNIdesu.Dex
 {
-    internal static class Helper
+    public static class Helper
     {
         public static int ReadUleb128(this Stream stream)
         {
@@ -16,7 +16,7 @@
             return length;
         }
 
-        public static int ReadUleb128(this HNIdesu.IO.BinaryReader stream)
+        public static int ReadUleb128(this IO.BinaryReader stream)
         {
             int length = 0;
             int flag = 0;

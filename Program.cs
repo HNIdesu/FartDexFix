@@ -1,52 +1,79 @@
 ﻿namespace HNIdesu.Dex
 {
-    internal class Program
+    public sealed class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (args.Length == 0)
             {
                 Console.WriteLine("Usage: input.dex ins1.bin ins2.bin ins3.bin...");
                 return;
             }
-            string inputFileName = args[0];
-            if(!File.Exists(inputFileName))
+            string dexFileName = args[0];
+            if(!File.Exists(dexFileName))
             {
-                Console.WriteLine($"error:输入文件{inputFileName}不存在");
+                Console.WriteLine($"error:输入文件{dexFileName}不存在");
                 return;
             }
-            DexFile file= DexFile.Parse(inputFileName);
-            IEnumerable<CodeItem> codeItems = new List<CodeItem>();
+            string dexFileDirectory = Path.GetDirectoryName(dexFileName) ?? Environment.CurrentDirectory;
+            DexFile dexFile= DexFile.Parse(dexFileName);
+            var codeItemSet = new HashSet<CodeItem>();
             for (int i = 1; i < args.Length; i++)
             {
-                string fileName = args[i];
-                if(!File.Exists(fileName))
+                string searchPattern = args[i];
+                string dirName = Path.GetDirectoryName(searchPattern)??Environment.CurrentDirectory;
+                string fileName = Path.GetFileName(searchPattern);
+                IEnumerable<string> fileList;
+                if (searchPattern.Contains('*') ||
+                    searchPattern.Contains('?'))
+                    fileList=Directory.EnumerateFiles(dirName, fileName);
+                else
                 {
-                    Console.WriteLine($"warn:找不到文件{fileName}");
-                    continue;
+                    if (!File.Exists(searchPattern))
+                    {
+                        Console.WriteLine($"can not find file {searchPattern}");
+                        continue;
+                    }
+                    fileList = new string[] { searchPattern };
                 }
-                codeItems=codeItems.Union(CodeItemParser.Parse(fileName));
+                foreach(var file in fileList)
+                {
+                    var codeItemList = CodeItemParser.Parse(file);
+                    foreach(var codeItem in codeItemList)
+                    {
+                        if (codeItemSet.TryGetValue(codeItem,out var innerItem))
+                        {
+                            if (!codeItem.Equals(innerItem))
+                            {
+                                Console.WriteLine("find different code item but have same hash value");
+                                Console.WriteLine(codeItem.ToString());
+                                Console.WriteLine(innerItem.ToString());
+                            }
+                        }
+                        else
+                            codeItemSet.Add(codeItem);
+                    }
+                }
             }
-            string newFilePath = Path.Combine(Path.GetDirectoryName(inputFileName),Path.GetFileNameWithoutExtension(inputFileName) + "_out.dex");
-            File.Copy(inputFileName, newFilePath,true);
 
+            string newFilePath = Path.Combine(dexFileDirectory, Path.GetFileNameWithoutExtension(dexFileName) + "_out.dex");
+            File.Copy(dexFileName, newFilePath,true);
             using (FileStream fs = File.OpenWrite(newFilePath))
             {         
-                foreach (var codeItem in codeItems)
+                foreach (var codeItem in codeItemSet)
                 {
                     long address;
                     try{
-                        string cm = codeItem.ClassName;
-                        cm = $"L{cm.Replace(".", "/")};";
-                        var methods = ( from cid in file.ClassIdList where cid.Class.Name.Value == cm select cid.ClassData.VirtualMethods ).First().Union(( from cid in file.ClassIdList where cid.Class.Name.Value == cm select cid.ClassData.DirectMethods ).First());
-                        address = ( from m in methods where ReferenceEquals(m.MethodId, file.MethodIdList[codeItem.MethodId]) select m.CodeItem.InsAdd ).First();
-                    }catch (Exception ex)
+                        string className = $"L{codeItem.ClassName.Replace(".", "/")};";
+                        var methods = ( from cid in dexFile.ClassIdList where cid.Class.Name.Value == className select cid.ClassData.VirtualMethods).First().Concat((from cid in dexFile.ClassIdList where cid.Class.Name.Value == className select cid.ClassData.DirectMethods).First());
+                        address = (from m in methods where ReferenceEquals(m.MethodId, dexFile.MethodIdList[codeItem.MethodId]) select m.CodeItem.InsAdd).First();
+                    }catch (Exception)
                     {
-                        Console.WriteLine($"找不到class:{codeItem.ClassName}的方法:{file.MethodIdList[codeItem.MethodId].Name.Value}。");
                         continue;
                     }
                     fs.Seek(address, SeekOrigin.Begin);
                     fs.Write(codeItem.Data);
+                    Console.WriteLine($"codeitem {codeItem} has been applied");
                 }
             }
             Console.WriteLine("完成");

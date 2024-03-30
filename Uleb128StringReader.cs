@@ -1,9 +1,6 @@
-﻿using System.Text;
-
-namespace HNIdesu.Dex
+﻿namespace HNIdesu.Dex
 {
-    
-    internal class Uleb128StringReader : HNIdesu.IO.StringReader
+    public sealed class Uleb128StringReader : IO.StringReader
     {      
         public override string ReadString(Stream stream)
         {
