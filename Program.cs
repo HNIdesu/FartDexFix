@@ -6,7 +6,7 @@
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("Usage: input.dex ins1.bin ins2.bin ins3.bin...");
+                Console.WriteLine("Usage: input.dex ins1.json ins2.json ins3.json...");
                 return;
             }
             string dexFileName = args[0];
@@ -38,7 +38,7 @@
                 }
                 foreach (var file in fileList)
                 {
-                    var codeItemList = CodeItemParser.Parse(file);
+                    var codeItemList = CodeItemParser.Parse(File.ReadAllText(file));
                     foreach (var codeItem in codeItemList)
                     {
                         if (codeItemSet.TryGetValue(codeItem, out var innerItem))

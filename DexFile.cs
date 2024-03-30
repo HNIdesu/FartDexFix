@@ -9,8 +9,9 @@ namespace HNIdesu.Dex
         public List<ProtoId> ProtoIdList = new List<ProtoId>();
         public List<MethodId> MethodIdList = new List<MethodId>();
         public List<ClassId> ClassIdList = new List<ClassId>();
-        
-        public static DexFile Parse(string path)
+
+        public static DexFile Parse(string path) => Parse(File.OpenRead(path));
+        public static DexFile Parse(Stream stream)
         {
             DexFile file = new DexFile();
             List<StringId> stringIdList = new List<StringId>();
@@ -23,17 +24,16 @@ namespace HNIdesu.Dex
             file.ProtoIdList = protoIdList;
             file.MethodIdList = methodIdList;
             file.ClassIdList = classIdList;
-            using (var fs = File.OpenRead(path))
-            {
-                var reader = new IO.BinaryReader(fs);
-                DexHeaderStruct dexHeader = reader.ReadMarshal<DexHeaderStruct>(Marshal.SizeOf(typeof(DexHeaderStruct)));
 
+            using (var reader = new IO.BinaryReader(stream))
+            {
+                DexHeaderStruct dexHeader = reader.ReadMarshal<DexHeaderStruct>(Marshal.SizeOf(typeof(DexHeaderStruct)));
                 //获取string ids
-                reader.BaseStream.Seek(dexHeader.stringIdsOff,SeekOrigin.Begin);
+                reader.BaseStream.Seek(dexHeader.stringIdsOff, SeekOrigin.Begin);
                 reader.StringReader = new Uleb128StringReader();
                 for (int i = 0; i < dexHeader.stringIdsSize; i++)
                 {
-                    int offset=reader.ReadInt32();
+                    int offset = reader.ReadInt32();
                     reader.SeekAndRead(offset, SeekOrigin.Begin, (br) =>
                     {
                         string str = reader.ReadString();
@@ -43,9 +43,9 @@ namespace HNIdesu.Dex
 
                 //获取Type ids
                 reader.BaseStream.Seek(dexHeader.typeIdsOff, SeekOrigin.Begin);
-                for(int i=0;i< dexHeader.typeIdsSize; i++)
+                for (int i = 0; i < dexHeader.typeIdsSize; i++)
                 {
-                    int offset=reader.ReadInt32();
+                    int offset = reader.ReadInt32();
                     typeIdList.Add(new TypeId(stringIdList[offset]));
                 }
 
@@ -53,8 +53,8 @@ namespace HNIdesu.Dex
                 reader.BaseStream.Seek(dexHeader.protoIdsOff, SeekOrigin.Begin);
                 for (int i = 0; i < dexHeader.protoIdsSize; i++)
                 {
-                    int a=reader.ReadInt32();
-                    int b=reader.ReadInt32();
+                    int a = reader.ReadInt32();
+                    int b = reader.ReadInt32();
                     reader.ReadInt32();//跳过
                     protoIdList.Add(new ProtoId(stringIdList[a], typeIdList[b]));
                 }
@@ -75,11 +75,11 @@ namespace HNIdesu.Dex
                 for (int i = 0; i < dexHeader.classDefsSize; i++)
                 {
                     ClassId cid = new ClassId();
-                    int class_idx= reader.ReadInt32();
-                    int access_flags=reader.ReadInt32();
-                    int superclass_ids=reader.ReadInt32();
-                    int interfaces_off=reader.ReadInt32();
-                    int source_file_idx=reader.ReadInt32();
+                    int class_idx = reader.ReadInt32();
+                    int access_flags = reader.ReadInt32();
+                    int superclass_ids = reader.ReadInt32();
+                    int interfaces_off = reader.ReadInt32();
+                    int source_file_idx = reader.ReadInt32();
                     reader.ReadBytes(4);//跳过
                     int class_data_off = reader.ReadInt32();
                     int static_values_off = reader.ReadInt32();
@@ -89,13 +89,14 @@ namespace HNIdesu.Dex
                     if (source_file_idx != -1)
                         cid.SourceFileName = stringIdList[source_file_idx];
                     classIdList.Add(cid);
-                    if (class_data_off != 0) {
+                    if (class_data_off != 0)
+                    {
                         reader.SeekAndRead(class_data_off, SeekOrigin.Begin, (br) => //读取ClassData
                         {
-                            
+
                             ClassData classData = new ClassData();
-                            dynamic x,y;
-                            x=new ClassData.ClassDataHeader();
+                            dynamic x, y;
+                            x = new ClassData.ClassDataHeader();
                             x.StaticFieldsSize = br.ReadUleb128();
                             x.InstanceFieldsSize = br.ReadUleb128();
                             x.DirectMethodsSize = br.ReadUleb128();
@@ -115,7 +116,7 @@ namespace HNIdesu.Dex
                                 br.ReadUleb128();
                             }
                             //直接方法
-                            int baseAddr=0;
+                            int baseAddr = 0;
                             for (int i = 0; i < x.DirectMethodsSize; i++)
                             {
                                 y = new ClassData.ClassMethod();
@@ -129,12 +130,12 @@ namespace HNIdesu.Dex
                                     baseAddr += reader.ReadUleb128();
                                     y.MethodId = methodIdList[baseAddr];
                                 }
-                                    
-                                    
-                                y.AccessFlag=(AccessFlags)br.ReadUleb128();
-                                int codeOff=br.ReadUleb128();
+
+
+                                y.AccessFlag = (AccessFlags)br.ReadUleb128();
+                                int codeOff = br.ReadUleb128();
                                 if (codeOff != 0)
-                                {                                
+                                {
                                     //读取CodeItem对象
                                     br.SeekAndRead(codeOff, SeekOrigin.Begin, (br1) =>
                                     {
@@ -146,12 +147,12 @@ namespace HNIdesu.Dex
                                         codeItem.TryCount = br1.ReadUInt16();
                                         codeItem._DbgInfoOffset = br1.ReadUInt32();
                                         codeItem.InsnsSize = br1.ReadUInt32();
-                                        
+
                                         for (int j = 0; j < codeItem.InsnsSize; j++)
                                             codeItem.InsnsList.Add(br1.ReadUInt16());
                                         y.CodeItem = codeItem;
                                     });
-                                    
+
                                 }
                                 classData.DirectMethods.Add(y);
                             }
@@ -168,7 +169,7 @@ namespace HNIdesu.Dex
                                     baseAddr += reader.ReadUleb128();
                                     y.MethodId = methodIdList[baseAddr];
                                 }
-                                    
+
 
                                 y.AccessFlag = (AccessFlags)br.ReadUleb128();
                                 int codeOff = br.ReadUleb128();
@@ -186,25 +187,22 @@ namespace HNIdesu.Dex
                                         codeItem.TryCount = br1.ReadUInt16();
                                         codeItem._DbgInfoOffset = br1.ReadUInt32();
                                         codeItem.InsnsSize = br1.ReadUInt32();
-                                        
+
                                         for (int j = 0; j < codeItem.InsnsSize; j++)
                                             codeItem.InsnsList.Add(br1.ReadUInt16());
                                         y.CodeItem = codeItem;
                                     });
-                                    
+
                                 }
-                            
+
                                 classData.VirtualMethods.Add(y);
                             }
 
                             cid.ClassData = classData;
                         });
                     }
-                    
-
                 }
-
-
+                
             }
 
             return file;

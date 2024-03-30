@@ -11,18 +11,19 @@ namespace HNIdesu.Dex
          原版Fart生成的CodeItem文件不好分析， 
          此函数解析的是自定义的CodeItem。需要根据实际CodeItem格式手动修改。
          */
-        public static IEnumerable<CodeItem> Parse(string fileName)
+        public static IEnumerable<CodeItem> Parse(string textContent)
         {
-            foreach (string item in File.ReadAllLines(fileName))
+            foreach (string line in textContent.Split("\r\n"))
             {
-                var element = JsonNode.Parse(item) as JsonObject;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var element = JsonNode.Parse(line) as JsonObject;
                 if (element == null ||
                     !element.ContainsKey("code_item_len") ||
                     !element.ContainsKey("classname") ||
                     !element.ContainsKey("method_idx") ||
                     !element.ContainsKey("data"))
                 {
-                    Console.WriteLine($"error parsing line {item} in codeitem file:{fileName}");
+                    Console.WriteLine($"error parsing line {line} in codeitem");
                     continue;
                 }
                 var dataLength = element["code_item_len"]!.GetValue<int>();
