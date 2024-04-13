@@ -7,10 +7,6 @@ namespace HNIdesu.Dex
 {
     public sealed class CodeItemParser
     {
-        /*
-         原版Fart生成的CodeItem文件不好分析， 
-         此函数解析的是自定义的CodeItem。需要根据实际CodeItem格式手动修改。
-         */
         public static IEnumerable<CodeItem> Parse(string textContent)
         {
             foreach (string line in textContent.Split("\r\n"))
@@ -30,8 +26,7 @@ namespace HNIdesu.Dex
                 var className = element["classname"]!.GetValue<string>();
                 var methodId = element["method_idx"]!.GetValue<int>();
                 var b64Data = element["data"]!.GetValue<string>();
-                byte[] data = new byte[dataLength];
-                Base64.DecodeFromUtf8(Encoding.UTF8.GetBytes(b64Data), data, out _, out _);
+                var data = Convert.FromBase64String(b64Data);
                 CodeItem codeItem = new CodeItem(className,methodId,data);
                 yield return codeItem;
             }

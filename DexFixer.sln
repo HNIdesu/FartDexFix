@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DexFixer", "DexFixer.csproj", "{D8374B57-CCC7-487B-B829-38674DDBB4EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DexFixer", "DexFixer\DexFixer.csproj", "{D8374B57-CCC7-487B-B829-38674DDBB4EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DexParser", "DexParser\DexParser.csproj", "{9F3B7DE7-E363-4559-97BD-F8D14A5B74E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{D8374B57-CCC7-487B-B829-38674DDBB4EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8374B57-CCC7-487B-B829-38674DDBB4EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8374B57-CCC7-487B-B829-38674DDBB4EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F3B7DE7-E363-4559-97BD-F8D14A5B74E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F3B7DE7-E363-4559-97BD-F8D14A5B74E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F3B7DE7-E363-4559-97BD-F8D14A5B74E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F3B7DE7-E363-4559-97BD-F8D14A5B74E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

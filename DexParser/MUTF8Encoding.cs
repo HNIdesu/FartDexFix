@@ -2,20 +2,18 @@
 
 namespace HNIdesu.Dex
 {
-    public sealed class MUTF8Encoding : Encoding
+    internal sealed class MUTF8Encoding : Encoding
     {
-        private static MUTF8Encoding? instance;
+        private static MUTF8Encoding? _Instance;
         public static MUTF8Encoding Instance
         {
             get
             {
-                if (instance == null)
-                    instance = new MUTF8Encoding();
-                return instance;
+                if (_Instance == null)
+                    _Instance = new MUTF8Encoding();
+                return _Instance;
             }
         }
-
-
         public override int GetByteCount(char[] chars, int index, int count)
         {
 
@@ -86,8 +84,6 @@ namespace HNIdesu.Dex
             return result;
         }
 
-
-
         public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
         {
 
@@ -116,14 +112,8 @@ namespace HNIdesu.Dex
             return destOffset;
         }
 
-        public override int GetMaxByteCount(int charCount)
-        {
-            return charCount * 3;//A character obtains 3 bytes at most.
-        }
+        public override int GetMaxByteCount(int charCount)=> charCount * 3;//A character obtains 3 bytes at most.
 
-        public override int GetMaxCharCount(int byteCount)
-        {
-            return byteCount;
-        }
+        public override int GetMaxCharCount(int byteCount) => byteCount;
     }
 }

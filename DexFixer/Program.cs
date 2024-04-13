@@ -1,4 +1,6 @@
-﻿namespace HNIdesu.Dex
+﻿
+
+namespace HNIdesu.Dex
 {
     public sealed class Program
     {
@@ -6,9 +8,12 @@
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("Usage: input.dex ins1.json ins2.json ins3.json...");
+                var program = Path.GetFileName(Environment.ProcessPath);
+                Console.WriteLine($"Usage:{program} input.dex ins1.json ins2.json ins3.json...");
                 return;
             }
+            var startTime = DateTime.Now;
+
             string dexFileName = args[0];
             if (!File.Exists(dexFileName))
             {
@@ -16,7 +21,18 @@
                 return;
             }
             string dexFileDirectory = Path.GetDirectoryName(dexFileName) ?? Environment.CurrentDirectory;
-            DexFile dexFile = DexFile.Parse(dexFileName);
+            var dexFile = DexFile.Parse(dexFileName);
+
+            var classNameMethodListDict = new Dictionary<string,IEnumerable<DexFile.ClassData.ClassMethod>>();
+            foreach(var classId in dexFile.ClassIdList)
+            {
+                var classData = classId.ClassData;
+                if (classData == null)
+                    continue;
+                classNameMethodListDict.Add(classId.Class.Name.Value, classData.DirectMethods.Concat(classData.VirtualMethods));
+            }
+                
+
             var codeItemSet = new HashSet<CodeItem>();
             for (int i = 1; i < args.Length; i++)
             {
@@ -34,7 +50,7 @@
                         Console.WriteLine($"can not find file {searchPattern}");
                         continue;
                     }
-                    fileList = new string[] { searchPattern };
+                    fileList = [ searchPattern ];
                 }
                 foreach (var file in fileList)
                 {
@@ -62,23 +78,30 @@
             {
                 foreach (var codeItem in codeItemSet)
                 {
-                    long address;
-                    try
+                    long address=-1;
+                    var className = $"L{codeItem.ClassName.Replace(".", "/")};";
+                    if (!classNameMethodListDict.ContainsKey(className)) continue;
+                    var methods = classNameMethodListDict[className];
+                    var targetMethodId = dexFile.MethodIdList[codeItem.MethodId];
+                    foreach (var method in methods)
                     {
-                        string className = $"L{codeItem.ClassName.Replace(".", "/")};";
-                        var methods = (from cid in dexFile.ClassIdList where cid.Class.Name.Value == className select cid.ClassData.VirtualMethods).First().Concat((from cid in dexFile.ClassIdList where cid.Class.Name.Value == className select cid.ClassData.DirectMethods).First());
-                        address = (from m in methods where ReferenceEquals(m.MethodId, dexFile.MethodIdList[codeItem.MethodId]) select m.CodeItem.InsAdd).First();
+                        if (ReferenceEquals(method.MethodId, targetMethodId))
+                        {
+                            address = method.CodeItem?.InsAdd??-1;
+                            break;
+                        }
                     }
-                    catch (Exception)
+                    if (address != -1)
                     {
-                        continue;
+                        fs.Seek(address, SeekOrigin.Begin);
+                        fs.Write(codeItem.Data);
+                        var method = dexFile.MethodIdList[codeItem.MethodId];
+                        Console.WriteLine($"codeitem class:{codeItem.ClassName},method:{method.Name.Value}({method.Proto.ShortyId.Value}) has been applied");
                     }
-                    fs.Seek(address, SeekOrigin.Begin);
-                    fs.Write(codeItem.Data);
-                    Console.WriteLine($"codeitem {codeItem} has been applied");
+                    
                 }
             }
-            Console.WriteLine("完成");
+            Console.WriteLine($"完成，用时{(DateTime.Now-startTime).Ticks/TimeSpan.TicksPerMillisecond}ms");
 
 
         }

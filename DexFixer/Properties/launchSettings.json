@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DexFixer": {
+      "commandName": "Project",
+      "commandLineArgs": "\"E:\\Documents\\Reverse\\11591760_30143.dex\" \"E:\\Documents\\Reverse\\11591760_30143.bin\""
+    }
+  }
+}
